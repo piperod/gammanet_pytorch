@@ -1,0 +1,19 @@
+type: test
+name: bd_resnet_test
+import_prepath: experiments.contour_detection
+import_class: BDTest
+testset: -dataset.BSDS500_test
+dataloader:
+  name: pt_loader
+  kwargs: 
+    batch_size: 1
+    shuffle: false 
+    num_workers: 4
+    pin_memory: True
+cuda: true
+loss: class_balanced_bce_with_logits
+eval: pixel_error
+dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}_${name}
+plot_recurrence: true
+exp_cfg: outputs/2020-02-04/21-42-47_bd_resnet_train_resnet_gammanet/config.yaml
+checkpoint: outputs/2020-02-04/21-42-47_bd_resnet_train_resnet_gammanet/300.pth.tar

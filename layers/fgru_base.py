@@ -43,6 +43,7 @@ class fGRUCell(nn.Module):
                 force_alpha_divisive=True,
                 force_non_negativity=True,
                 multiplicative_excitation=True,
+                timesteps=6,
                 gate_bias_init='chronos' #'ones'
                 ):
         super().__init__()
@@ -58,7 +59,7 @@ class fGRUCell(nn.Module):
 
         #self.ff_nl = ff_non_linearity
         self.ff_nl = pt_utils.get_nl(ff_non_linearity)
-
+        self.timesteps=timesteps
         self.normalization_fgru = normalization_fgru
         self.normalization_gate = normalization_gate
         self.normalization_fgru_params = normalization_fgru_params if normalization_fgru_params is not None else {}
@@ -150,7 +151,7 @@ class fGRUCell(nn.Module):
             self.conv_c2_w.register_hook(lambda grad: (grad + torch.transpose(grad,1,0))*0.5)
 
         if gate_bias_init == 'chronos':
-            init_chronos = -np.log(np.random.uniform(1.0, max(float(timesteps- 1), 1.0), [hidden_size,1,1]))
+            init_chronos = -np.log(np.random.uniform(1.0, max(float(self.timesteps- 1), 1.0), [hidden_size,1,1]))
             # init.uniform_(self.conv_g2_b.data, 1.0, max(float(timesteps- 1), 1.0))
             self.conv_g1_b.data = torch.FloatTensor(init_chronos)
             self.conv_g2_b.data = torch.FloatTensor(- init_chronos)
@@ -212,8 +213,8 @@ class fGRUCell(nn.Module):
         #                to conv -> sigmoid -> bn (beta is chronos)
         h2_int_2 = h2_int * torch.sigmoid(g1_n + self.conv_g1_b)
 
-        if self.normalization_fgru:
-            h2 = self.bn_c1(h2)
+        #if self.normalization_fgru:
+        #    h2 = self.bn_c1(h2)
 
         # c1 -> conv2d symmetric_weights, dilations
         if self.tied_kernels=='channel':
